@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3"
 services:
   database:
     build:
@@ -44,26 +44,24 @@ services:
       database:
         condition: service_started
   rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    restart: unless-stopped
+    build:
+      context: ./rabbitmq
+      dockerfile: Dockerfile
     environment:
       RABBITMQ_DEFAULT_VHOST: '/'
       RABBITMQ_NODENAME: rabbit@localhost
     env_file:
       - ./.shared.env
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq/mnesia
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    networks:
-      - imagineapi
     ports:
       - 15672:15672
-      - 5672:5672    # Port AMQP (obligatoire)
   bot:
     build: ./bot
     environment:
@@ -100,4 +98,3 @@ volumes:
   api:
   rabbitmq:
   database:
-  rabbitmq-data:
